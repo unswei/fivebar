@@ -7,6 +7,8 @@ const config = {
     l3: 0.544,
     l4: 0.557,
     l5: 0.406,
+    leftBranch: -1,
+    rightBranch: 1,
   },
   simulator: {
     leftAngleDeg: 15.534233824250094,
@@ -17,6 +19,7 @@ const config = {
     massKg: 1,
     gravityX: -9.81,
     gravityY: 0,
+    preventBranchSwitching: false,
   },
 };
 
@@ -33,6 +36,9 @@ const state = {
   targetDistance: config.simulator.distance,
   targetAngleDeg: config.simulator.targetAngleDeg,
   branch: config.simulator.branch,
+  ikLeftBranch: config.linkage.leftBranch,
+  ikRightBranch: config.linkage.rightBranch,
+  preventBranchSwitching: config.simulator.preventBranchSwitching,
   gravityX: config.simulator.gravityX,
   gravityY: config.simulator.gravityY,
   trace: [],
@@ -49,6 +55,8 @@ const controls = {
   targetAngle: document.getElementById("targetAngle"),
   gravityX: document.getElementById("gravityX"),
   gravityY: document.getElementById("gravityY"),
+  ikBranchPair: document.getElementById("ikBranchPair"),
+  preventBranchSwitching: document.getElementById("preventBranchSwitching"),
 };
 const outputs = {
   leftAngle: document.getElementById("leftAngleValue"),
@@ -227,21 +235,43 @@ function condition2x2(m) {
   return Math.sqrt(lambdaMax / lambdaMin);
 }
 
-function inverseKinematicsSolutions(targetEndpoint) {
+function branchPairLabel(leftBranch, rightBranch) {
+  const left = leftBranch > 0 ? "+1" : "-1";
+  const right = rightBranch > 0 ? "+1" : "-1";
+  return `(${left}, ${right})`;
+}
+
+function parseBranchPair(value) {
+  if (value === "auto") return null;
+  const [leftBranch, rightBranch] = value.split(",").map(Number);
+  return { leftBranch, rightBranch };
+}
+
+function activeBranchPairConstraint() {
+  const selected = parseBranchPair(controls.ikBranchPair.value);
+  if (selected) return selected;
+  if (!state.preventBranchSwitching) return null;
+  return { leftBranch: state.ikLeftBranch, rightBranch: state.ikRightBranch };
+}
+
+function inverseKinematicsSolutions(targetEndpoint, branchPair = null, closureBranchConstraint = null) {
   const [a0, b0] = basePoints();
   const { l1, l2, l3, l4, l5 } = config.linkage;
   const solutions = [];
+  const leftBranches = branchPair ? [branchPair.leftBranch] : [1, -1];
+  const rightBranches = branchPair ? [branchPair.rightBranch] : [1, -1];
 
-  for (const leftBranch of [1, -1]) {
+  for (const leftBranch of leftBranches) {
     const c = circleIntersection(a0, l1, targetEndpoint, l2 + l5, leftBranch);
     if (!c) continue;
     const targetWrist = wristFromToolEndpoint(c, targetEndpoint);
 
-    for (const rightBranch of [1, -1]) {
+    for (const rightBranch of rightBranches) {
       const dJoint = circleIntersection(b0, l3, targetWrist, l4, rightBranch);
       if (!dJoint) continue;
       const closureBranch = closureBranchForPoint(c, dJoint, targetWrist);
       if (closureBranch === null) continue;
+      if (closureBranchConstraint !== null && closureBranch !== closureBranchConstraint) continue;
       const wrist = solveEndpoint(c, dJoint, closureBranch);
       const endpoint = toolEndpoint(c, wrist);
       if (!endpoint) continue;
@@ -264,6 +294,8 @@ function inverseKinematicsSolutions(targetEndpoint) {
         endpoint,
         leftAngleDeg,
         rightAngleDeg,
+        leftBranch,
+        rightBranch,
         closureBranch,
         metrics,
         change,
@@ -275,13 +307,35 @@ function inverseKinematicsSolutions(targetEndpoint) {
 }
 
 function chooseIkSolution(targetEndpoint) {
-  const solutions = inverseKinematicsSolutions(targetEndpoint);
+  const branchPair = activeBranchPairConstraint();
+  const closureBranch = state.preventBranchSwitching ? state.branch : null;
+  const solutions = inverseKinematicsSolutions(targetEndpoint, branchPair, closureBranch);
   if (!solutions.length) return null;
   solutions.sort((a, b) => a.change - b.change || b.singularScore - a.singularScore);
   const continuous = solutions[0];
-  if (continuous.metrics.condition < constants.nearCondition) return continuous;
+  continuous.selectionReason = branchPair ? "fixed branch pair" : "continuous";
+  continuous.switchedForSingularity = false;
+  if (branchPair || continuous.metrics.condition < constants.nearCondition) return continuous;
   solutions.sort((a, b) => b.singularScore - a.singularScore || a.change - b.change);
-  return solutions[0];
+  const safest = solutions[0];
+  safest.selectionReason = safest === continuous ? "continuous" : "singularity avoidance";
+  safest.switchedForSingularity = safest !== continuous;
+  return safest;
+}
+
+function inferIkBranchPair(endpoint, leftDeg, rightDeg) {
+  const solutions = inverseKinematicsSolutions(endpoint);
+  if (!solutions.length) return null;
+  solutions.sort(
+    (a, b) =>
+      angleChangeDeg(a.leftAngleDeg, leftDeg) +
+      angleChangeDeg(a.rightAngleDeg, rightDeg) -
+      (angleChangeDeg(b.leftAngleDeg, leftDeg) + angleChangeDeg(b.rightAngleDeg, rightDeg)),
+  );
+  return {
+    leftBranch: solutions[0].leftBranch,
+    rightBranch: solutions[0].rightBranch,
+  };
 }
 
 function tipJacobian(leftDeg, rightDeg, branch) {
@@ -432,6 +486,12 @@ function updateReadout(pose, target) {
     metric("Condition", Number.isFinite(metrics.condition) ? fmt(metrics.condition, 2) : "∞"),
     metric("Parallel sin", fmt(metrics.parallelSin, 3)),
     metric("Serial margin", `${fmt(metrics.serialMin, 3)} m²`),
+    metric(
+      "IK branch pair",
+      `${branchPairLabel(state.ikLeftBranch, state.ikRightBranch)}<br />${
+        state.preventBranchSwitching ? "switching prevented" : "switching allowed"
+      }`,
+    ),
     metric("Target", `${fmt(target[0])}, ${fmt(target[1])} m`),
     metric("Tip force", `${fmt(config.simulator.massKg * state.gravityX, 2)}, ${fmt(config.simulator.massKg * state.gravityY, 2)} N`),
     metric(
@@ -466,6 +526,7 @@ function syncControls() {
   controls.targetAngle.value = state.targetAngleDeg;
   controls.gravityX.value = state.gravityX;
   controls.gravityY.value = state.gravityY;
+  controls.preventBranchSwitching.checked = state.preventBranchSwitching;
 
   outputs.leftAngle.textContent = fmt(state.leftAngleDeg, 1);
   outputs.rightAngle.textContent = fmt(state.rightAngleDeg, 1);
@@ -483,6 +544,11 @@ function updateFromAngles() {
   state.rightAngleDeg = Number(controls.rightAngle.value);
   const pose = poseFromAngles(state.leftAngleDeg, state.rightAngleDeg, state.branch);
   if (pose.endpoint) {
+    const branchPair = inferIkBranchPair(pose.endpoint, state.leftAngleDeg, state.rightAngleDeg);
+    if (branchPair) {
+      state.ikLeftBranch = branchPair.leftBranch;
+      state.ikRightBranch = branchPair.rightBranch;
+    }
     state.targetDistance = norm(pose.endpoint);
     let angle = (Math.atan2(pose.endpoint[1], pose.endpoint[0]) * 180) / Math.PI;
     if (angle < 0) angle += 360;
@@ -500,6 +566,8 @@ function updateFromTarget() {
     state.leftAngleDeg = solution.leftAngleDeg;
     state.rightAngleDeg = solution.rightAngleDeg;
     state.branch = solution.closureBranch;
+    state.ikLeftBranch = solution.leftBranch;
+    state.ikRightBranch = solution.rightBranch;
   }
   render();
 }
@@ -522,6 +590,8 @@ function setup() {
   controls.targetAngle.value = state.targetAngleDeg;
   controls.gravityX.value = state.gravityX;
   controls.gravityY.value = state.gravityY;
+  controls.ikBranchPair.value = "auto";
+  controls.preventBranchSwitching.checked = state.preventBranchSwitching;
 
   controls.leftAngle.addEventListener("input", updateFromAngles);
   controls.rightAngle.addEventListener("input", updateFromAngles);
@@ -529,10 +599,23 @@ function setup() {
   controls.targetAngle.addEventListener("input", updateFromTarget);
   controls.gravityX.addEventListener("input", updateFromLoad);
   controls.gravityY.addEventListener("input", updateFromLoad);
+  controls.ikBranchPair.addEventListener("change", updateFromTarget);
+  controls.preventBranchSwitching.addEventListener("change", () => {
+    state.preventBranchSwitching = controls.preventBranchSwitching.checked;
+    updateFromTarget();
+  });
   document.querySelectorAll('input[name="branch"]').forEach((radio) => {
     radio.addEventListener("change", () => {
       state.mode = "angles";
       state.branch = Number(radio.value);
+      const pose = poseFromAngles(state.leftAngleDeg, state.rightAngleDeg, state.branch);
+      if (pose.endpoint) {
+        const branchPair = inferIkBranchPair(pose.endpoint, state.leftAngleDeg, state.rightAngleDeg);
+        if (branchPair) {
+          state.ikLeftBranch = branchPair.leftBranch;
+          state.ikRightBranch = branchPair.rightBranch;
+        }
+      }
       render();
     });
   });

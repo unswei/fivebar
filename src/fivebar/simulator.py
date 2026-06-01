@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from heapq import heappop, heappush
 from matplotlib.patches import Circle
-from matplotlib.widgets import Button, RadioButtons, Slider
+from matplotlib.widgets import Button, CheckButtons, RadioButtons, Slider
 
 from .config import DEFAULT_LINKAGE, DEFAULT_SIMULATOR, load_config_file
 from .singularity_plotter import base_points, circle_intersection
@@ -26,6 +26,8 @@ DEFAULT_RIGHT_ANGLE_DEG = DEFAULT_SIMULATOR.right_angle_deg
 DEFAULT_DISTANCE = DEFAULT_SIMULATOR.distance
 DEFAULT_TARGET_ANGLE_DEG = DEFAULT_SIMULATOR.target_angle_deg
 DEFAULT_BRANCH = DEFAULT_SIMULATOR.closure_branch
+DEFAULT_IK_LEFT_BRANCH = DEFAULT_LINKAGE.left_branch
+DEFAULT_IK_RIGHT_BRANCH = DEFAULT_LINKAGE.right_branch
 DISTANCE_DETENTS = (0.5, 1.0)
 TARGET_ANGLE_DETENTS = (90.0,)
 GRAVITY_DETENTS = (-9.81, 0.0, 9.81)
@@ -45,6 +47,7 @@ def apply_runtime_config(linkage_config, simulator_config):
     global TIP_MASS_KG, DEFAULT_GRAVITY_X, DEFAULT_GRAVITY_Y, TIP_LOAD_FORCE
     global DEFAULT_LEFT_ANGLE_DEG, DEFAULT_RIGHT_ANGLE_DEG
     global DEFAULT_DISTANCE, DEFAULT_TARGET_ANGLE_DEG, DEFAULT_BRANCH
+    global DEFAULT_IK_LEFT_BRANCH, DEFAULT_IK_RIGHT_BRANCH
 
     D = linkage_config.d
     BASE_Y = linkage_config.base_y
@@ -64,6 +67,8 @@ def apply_runtime_config(linkage_config, simulator_config):
     DEFAULT_DISTANCE = simulator_config.distance
     DEFAULT_TARGET_ANGLE_DEG = simulator_config.target_angle_deg
     DEFAULT_BRANCH = simulator_config.closure_branch
+    DEFAULT_IK_LEFT_BRANCH = linkage_config.left_branch
+    DEFAULT_IK_RIGHT_BRANCH = linkage_config.right_branch
 
 
 def normalise_angle_deg(angle):
@@ -168,22 +173,41 @@ def is_near_singularity(metrics):
     )
 
 
-def inverse_kinematics_solutions(A0, B0, target_endpoint, current_left_deg, current_right_deg):
+def branch_pair_label(left_branch, right_branch):
+    return f"({left_branch:+d}, {right_branch:+d})"
+
+
+def inverse_kinematics_solutions(
+    A0,
+    B0,
+    target_endpoint,
+    current_left_deg,
+    current_right_deg,
+    branch_pair=None,
+    closure_branch_constraint=None,
+):
     """Return all valid IK solutions for a target L5 endpoint."""
     solutions = []
-    for left_branch in (1, -1):
+    left_branches = (branch_pair[0],) if branch_pair is not None else (1, -1)
+    right_branches = (branch_pair[1],) if branch_pair is not None else (1, -1)
+    for left_branch in left_branches:
         C = circle_intersection(A0, L1, target_endpoint, L2 + L5, branch=left_branch)
         if C is None:
             continue
 
         target_wrist = wrist_from_tool_endpoint(C, target_endpoint)
-        for right_branch in (1, -1):
+        for right_branch in right_branches:
             D_joint = circle_intersection(B0, L3, target_wrist, L4, branch=right_branch)
             if D_joint is None:
                 continue
 
             closure_branch = closure_branch_for_point(C, D_joint, target_wrist)
             if closure_branch is None:
+                continue
+            if (
+                closure_branch_constraint is not None
+                and closure_branch != closure_branch_constraint
+            ):
                 continue
 
             wrist = solve_endpoint(C, D_joint, closure_branch)
@@ -218,9 +242,26 @@ def inverse_kinematics_solutions(A0, B0, target_endpoint, current_left_deg, curr
     return solutions
 
 
-def choose_inverse_kinematics_solution(A0, B0, P, current_left_deg, current_right_deg):
+def choose_inverse_kinematics_solution(
+    A0,
+    B0,
+    P,
+    current_left_deg,
+    current_right_deg,
+    branch_pair=None,
+    closure_branch_constraint=None,
+    prevent_branch_switching=False,
+):
     """Choose a continuous IK solution, unless singularity avoidance should switch branches."""
-    solutions = inverse_kinematics_solutions(A0, B0, P, current_left_deg, current_right_deg)
+    solutions = inverse_kinematics_solutions(
+        A0,
+        B0,
+        P,
+        current_left_deg,
+        current_right_deg,
+        branch_pair=branch_pair,
+        closure_branch_constraint=closure_branch_constraint,
+    )
     if not solutions:
         return None
 
@@ -228,8 +269,13 @@ def choose_inverse_kinematics_solution(A0, B0, P, current_left_deg, current_righ
         solutions,
         key=lambda solution: (solution["change"], solution["absolute_angle_size"]),
     )
-    if not is_near_singularity(continuous["metrics"]) or len(solutions) == 1:
-        continuous["selection_reason"] = "continuous"
+    if (
+        branch_pair is not None
+        or prevent_branch_switching
+        or not is_near_singularity(continuous["metrics"])
+        or len(solutions) == 1
+    ):
+        continuous["selection_reason"] = "fixed branch pair" if branch_pair is not None else "continuous"
         continuous["switched_for_singularity"] = False
         return continuous
 
@@ -251,6 +297,26 @@ def choose_inverse_kinematics_solution(A0, B0, P, current_left_deg, current_righ
 def inverse_kinematics_from_point(A0, B0, P, current_left_deg, current_right_deg):
     """Compatibility wrapper returning the chosen IK solution."""
     return choose_inverse_kinematics_solution(A0, B0, P, current_left_deg, current_right_deg)
+
+
+def infer_ik_branch_pair(A0, B0, endpoint, current_left_deg, current_right_deg):
+    """Infer the IK branch pair that best matches the current actuator angles."""
+    if endpoint is None:
+        return None
+    solutions = inverse_kinematics_solutions(
+        A0,
+        B0,
+        endpoint,
+        current_left_deg,
+        current_right_deg,
+    )
+    if not solutions:
+        return None
+    closest = min(
+        solutions,
+        key=lambda solution: (solution["change"], solution["absolute_angle_size"]),
+    )
+    return closest["left_branch"], closest["right_branch"]
 
 
 def closure_gap(C, D_joint):
@@ -562,6 +628,8 @@ def main(argv=None):
     gravity_y_slider_ax = fig.add_axes([0.28, 0.04, 0.48, 0.03])
     clear_ax = fig.add_axes([0.28, 0.005, 0.14, 0.03])
     branch_ax = fig.add_axes([0.80, 0.38, 0.16, 0.12])
+    ik_branch_ax = fig.add_axes([0.80, 0.18, 0.16, 0.16])
+    prevent_switch_ax = fig.add_axes([0.80, 0.11, 0.16, 0.05])
 
     left_slider = Slider(
         left_slider_ax,
@@ -616,6 +684,26 @@ def main(argv=None):
         ("branch +1", "branch -1"),
         active=0 if DEFAULT_BRANCH == 1 else 1,
     )
+    ik_branch_labels = (
+        "auto",
+        "(+1, +1)",
+        "(+1, -1)",
+        "(-1, +1)",
+        "(-1, -1)",
+    )
+    ik_branch_pairs = {
+        "(+1, +1)": (1, 1),
+        "(+1, -1)": (1, -1),
+        "(-1, +1)": (-1, 1),
+        "(-1, -1)": (-1, -1),
+    }
+    ik_branch_radio = RadioButtons(ik_branch_ax, ik_branch_labels, active=0)
+    ik_branch_ax.set_title("IK branch pair")
+    prevent_switch_check = CheckButtons(
+        prevent_switch_ax,
+        ("prevent switch",),
+        (False,),
+    )
     clear_button = Button(clear_ax, "clear trace")
     draw_slider_detents(distance_slider, DISTANCE_DETENTS)
     draw_slider_detents(target_angle_slider, TARGET_ANGLE_DETENTS)
@@ -627,9 +715,24 @@ def main(argv=None):
     switch_trace_x = []
     switch_trace_y = []
     is_updating = False
+    current_ik_pair = [DEFAULT_IK_LEFT_BRANCH, DEFAULT_IK_RIGHT_BRANCH]
 
     def current_branch():
         return 1 if branch_radio.value_selected == "branch +1" else -1
+
+    def fixed_ik_branch_pair():
+        return ik_branch_pairs.get(ik_branch_radio.value_selected)
+
+    def prevent_branch_switching():
+        return prevent_switch_check.get_status()[0]
+
+    def active_ik_branch_pair():
+        selected_pair = fixed_ik_branch_pair()
+        if selected_pair is not None:
+            return selected_pair
+        if prevent_branch_switching():
+            return tuple(current_ik_pair)
+        return None
 
     def current_tip_force():
         return TIP_MASS_KG * np.array([gravity_x_slider.val, gravity_y_slider.val])
@@ -738,8 +841,12 @@ def main(argv=None):
             )
 
         extra_status = "" if target_status is None else f"\n{target_status}"
+        ik_status = "\nIK branch pair = {} ({})".format(
+            branch_pair_label(current_ik_pair[0], current_ik_pair[1]),
+            "switching prevented" if prevent_branch_switching() else "switching allowed",
+        )
         status_text.set_text(
-            "E = ({:.3f}, {:.3f})\nwrist = ({:.3f}, {:.3f})\nr = {:.3f}, angle = {:.1f} deg\ncondition = {:.2f}\nparallel sin = {:.3f}\nserial margin = {:.3f}{}{}".format(
+            "E = ({:.3f}, {:.3f})\nwrist = ({:.3f}, {:.3f})\nr = {:.3f}, angle = {:.1f} deg\ncondition = {:.2f}\nparallel sin = {:.3f}\nserial margin = {:.3f}{}{}{}".format(
                 E[0],
                 E[1],
                 P[0],
@@ -749,6 +856,7 @@ def main(argv=None):
                 condition,
                 parallel_sin,
                 serial_min,
+                ik_status,
                 torque_status,
                 extra_status,
             )
@@ -770,6 +878,9 @@ def main(argv=None):
         E = tool_endpoint(C, P)
 
         if E is not None:
+            branch_pair = infer_ik_branch_pair(A0, B0, E, left_slider.val, right_slider.val)
+            if branch_pair is not None:
+                current_ik_pair[:] = branch_pair
             polar_distance = np.linalg.norm(E)
             polar_angle = np.rad2deg(np.arctan2(E[1], E[0]))
             if polar_angle < 0.0:
@@ -816,6 +927,9 @@ def main(argv=None):
             target,
             current_left_deg=previous_left_deg,
             current_right_deg=previous_right_deg,
+            branch_pair=active_ik_branch_pair(),
+            closure_branch_constraint=current_branch() if prevent_branch_switching() else None,
+            prevent_branch_switching=prevent_branch_switching(),
         )
         if solution is None:
             target_marker.set_data([target[0]], [target[1]])
@@ -831,6 +945,7 @@ def main(argv=None):
         left_angle_deg = solution["left_angle_deg"]
         right_angle_deg = solution["right_angle_deg"]
         closure_branch = solution["closure_branch"]
+        current_ik_pair[:] = [solution["left_branch"], solution["right_branch"]]
         C = solution["C"]
         D_joint = solution["D_joint"]
         switch_plan = None
@@ -859,6 +974,10 @@ def main(argv=None):
                         switch_plan["length"], switch_plan["max_step"]
                     )
                 )
+        elif solution["selection_reason"] == "fixed branch pair":
+            target_status = "polar IK target active; fixed IK branch"
+        elif prevent_branch_switching():
+            target_status = "polar IK target active; branch switching prevented"
         draw_pose(C, D_joint, P, target=target, target_status=target_status)
         is_updating = False
 
@@ -874,6 +993,8 @@ def main(argv=None):
     left_slider.on_changed(update_from_base)
     right_slider.on_changed(update_from_base)
     branch_radio.on_clicked(update_from_base)
+    ik_branch_radio.on_clicked(update_from_polar)
+    prevent_switch_check.on_clicked(update_from_polar)
     distance_slider.on_changed(update_from_polar)
     target_angle_slider.on_changed(update_from_polar)
     gravity_x_slider.on_changed(update_from_load)

@@ -253,6 +253,11 @@ input[type="range"] {
   background: var(--panel-muted);
 }
 
+.branch-control-vertical {
+  display: grid;
+  gap: 10px;
+}
+
 .branch-control legend {
   padding: 0 4px;
   color: var(--muted);

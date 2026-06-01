@@ -6,7 +6,7 @@ This repository contains Python/Matplotlib tools and a static JavaScript browser
 
 ## Current Tools
 
-- `fivebar-simulator`: interactive linkage simulator with base joint control, polar target control, branch selection, singularity readout, trajectory trace, and static tip-load torque estimates.
+- `fivebar-simulator`: interactive linkage simulator with base joint control, polar target control, closure and IK branch selection, optional branch-switch prevention, singularity readout, trajectory trace, and static tip-load torque estimates.
 - `fivebar-plot-singularities`: workspace and singularity plots for a fixed assembly branch.
 - `fivebar-search-config`: coarse search tool for candidate linkage dimensions.
 - `fivebar-search-torque-config`: random/refinement search for L1..L5 dimensions that cover the radius-1 upper semicircle while minimising worst single-joint holding torque.

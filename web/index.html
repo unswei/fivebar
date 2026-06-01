@@ -104,6 +104,18 @@
             <label><input type="radio" name="branch" value="1" /> +1</label>
             <label><input type="radio" name="branch" value="-1" /> -1</label>
           </fieldset>
+
+          <fieldset class="branch-control branch-control-vertical">
+            <legend>IK branch pair</legend>
+            <select id="ikBranchPair">
+              <option value="auto">automatic</option>
+              <option value="1,1">(+1, +1)</option>
+              <option value="1,-1">(+1, -1)</option>
+              <option value="-1,1">(-1, +1)</option>
+              <option value="-1,-1">(-1, -1)</option>
+            </select>
+            <label><input id="preventBranchSwitching" type="checkbox" /> prevent branch switching</label>
+          </fieldset>
         </aside>
       </section>
     </main>
