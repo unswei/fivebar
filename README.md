@@ -8,6 +8,7 @@ This repository contains Python/Matplotlib tools and a static JavaScript browser
 
 - `fivebar-simulator`: interactive linkage simulator with base joint control, polar target control, closure and IK branch selection, optional branch-switch prevention, singularity readout, trajectory trace, and static tip-load torque estimates.
 - `fivebar-plot-singularities`: workspace and singularity plots for a fixed assembly branch.
+- `fivebar-plot-spatial-reachability`: first 3D reachability plot for a planar five-bar swept 180 degrees around the base x-axis.
 - `fivebar-search-config`: coarse search tool for candidate linkage dimensions.
 - `fivebar-search-torque-config`: random/refinement search for L1..L5 dimensions that cover the radius-1 upper semicircle while minimising worst single-joint holding torque.
 - `web/`: static browser simulator and singularity plot for GitHub Pages.
@@ -48,6 +49,13 @@ Run the singularity plotter:
 ```bash
 uv run fivebar-plot-singularities
 uv run fivebar-plot-singularities --config configs/default.toml
+```
+
+Run the first 3D reachability plot:
+
+```bash
+uv run fivebar-plot-spatial-reachability
+uv run fivebar-plot-spatial-reachability --branch +1,-1 --radius 1
 ```
 
 Run the search tool:
