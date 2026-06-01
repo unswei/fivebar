@@ -63,6 +63,24 @@ uv run fivebar-search-torque-config
 
 This is a sampled optimisation, not a formal proof. Increase `--samples`, `--radial-samples`, and `--angular-samples` for a more stringent search.
 
+## Browser Simulator
+
+The static JavaScript simulator lives in `web/` and has no build step. It can run from GitHub Pages directly.
+
+For local preview:
+
+```bash
+python3 -m http.server 4173
+```
+
+Then open:
+
+```text
+http://127.0.0.1:4173/web/
+```
+
+If GitHub Pages is configured to serve the repository root, the root `index.html` redirects to the web simulator.
+
 ## Notes
 
 The simulator torque readout is quasi-static. It estimates the actuator holding torques for a point load at the L5 tip via the tip Jacobian. It does not include link masses, friction, inertia, gearbox effects, or actuator limits.

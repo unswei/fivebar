@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Five-bar linkage simulator</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-header">
+        <div>
+          <h1>Five-bar linkage simulator</h1>
+          <p>Static browser model for linkage geometry, singularity margins, and tip-load torque.</p>
+        </div>
+        <div class="config-summary" id="configSummary"></div>
+      </header>
+
+      <section class="workspace">
+        <aside class="readout-panel" aria-label="Pose readout">
+          <h2>Readout</h2>
+          <dl id="readout"></dl>
+          <button id="clearTrace" type="button" title="Clear trajectory trace">
+            <span aria-hidden="true">↺</span>
+            Clear trace
+          </button>
+        </aside>
+
+        <section class="plot-panel" aria-label="Linkage plot">
+          <svg id="plot" viewBox="0 0 900 650" role="img" aria-label="Five-bar linkage plot">
+            <defs>
+              <pattern id="minorGrid" width="45" height="45" patternUnits="userSpaceOnUse">
+                <path d="M 45 0 L 0 0 0 45" fill="none" stroke="#eceff3" stroke-width="1" />
+              </pattern>
+              <pattern id="majorGrid" width="180" height="180" patternUnits="userSpaceOnUse">
+                <rect width="180" height="180" fill="url(#minorGrid)" />
+                <path d="M 180 0 L 0 0 0 180" fill="none" stroke="#d4dae2" stroke-width="1.4" />
+              </pattern>
+            </defs>
+            <rect width="900" height="650" fill="url(#majorGrid)" />
+            <g id="plotLayer"></g>
+          </svg>
+        </section>
+
+        <aside class="control-panel" aria-label="Simulator controls">
+          <h2>Controls</h2>
+          <div class="control-group">
+            <label>
+              <span>Left inward angle</span>
+              <output id="leftAngleValue"></output>
+              <input id="leftAngle" type="range" min="-180" max="180" step="0.1" />
+            </label>
+            <label>
+              <span>Right inward angle</span>
+              <output id="rightAngleValue"></output>
+              <input id="rightAngle" type="range" min="-180" max="180" step="0.1" />
+            </label>
+          </div>
+
+          <div class="control-group">
+            <label>
+              <span>Target distance</span>
+              <output id="distanceValue"></output>
+              <input id="targetDistance" type="range" min="0" max="1.8" step="0.001" />
+            </label>
+            <label>
+              <span>Target angle</span>
+              <output id="targetAngleValue"></output>
+              <input id="targetAngle" type="range" min="0" max="180" step="0.1" />
+            </label>
+          </div>
+
+          <div class="control-group">
+            <label>
+              <span>Gravity x</span>
+              <output id="gravityXValue"></output>
+              <input id="gravityX" type="range" min="-20" max="20" step="0.01" />
+            </label>
+            <label>
+              <span>Gravity y</span>
+              <output id="gravityYValue"></output>
+              <input id="gravityY" type="range" min="-20" max="20" step="0.01" />
+            </label>
+          </div>
+
+          <fieldset class="branch-control">
+            <legend>Closure branch</legend>
+            <label><input type="radio" name="branch" value="1" /> +1</label>
+            <label><input type="radio" name="branch" value="-1" /> -1</label>
+          </fieldset>
+        </aside>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
