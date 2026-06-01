@@ -68,6 +68,12 @@ This is a sampled optimisation, not a formal proof. Increase `--samples`, `--rad
 
 The static JavaScript simulator lives in `web/` and has no build step. It can run from GitHub Pages directly.
 
+Live version:
+
+```text
+https://unswei.github.io/fivebar/
+```
+
 For local preview:
 
 ```bash
