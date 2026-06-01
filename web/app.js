@@ -590,7 +590,7 @@ function setup() {
   controls.targetAngle.value = state.targetAngleDeg;
   controls.gravityX.value = state.gravityX;
   controls.gravityY.value = state.gravityY;
-  controls.ikBranchPair.value = "auto";
+  controls.ikBranchPair.value = `${state.ikLeftBranch},${state.ikRightBranch}`;
   controls.preventBranchSwitching.checked = state.preventBranchSwitching;
 
   controls.leftAngle.addEventListener("input", updateFromAngles);
