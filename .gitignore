@@ -1,0 +1,22 @@
+.venv/
+__pycache__/
+*.py[cod]
+.DS_Store
+*~
+
+# Python packaging and local tooling
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+dist/
+build/
+*.egg-info/
+
+# Generated local artefacts
+output/
+exports/
+
+# Future web app dependencies/build output
+node_modules/
+web/dist/
+web/.vite/

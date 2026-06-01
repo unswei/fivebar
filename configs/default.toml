@@ -1,0 +1,24 @@
+[linkage] 
+d = 0.1917
+base_y = -0.3745
+l1 = 0.5829
+l2 = 0.4632
+l3 = 0.3308
+l4 = 0.7360
+l5 = 0.3790
+left_branch = 1
+right_branch = -1
+
+[simulator]
+left_angle_deg = 15.534233824250094
+right_angle_deg = 43.922888743202634
+distance = 0.5
+target_angle_deg = 90.0
+closure_branch = -1
+tip_mass_kg = 1.0
+gravity_x = -9.81
+gravity_y = 0.0
+
+[singularity_plot]
+target_radius = 1.0
+target_shape = "circle"
