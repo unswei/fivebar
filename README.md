@@ -2,7 +2,7 @@
 
 Five-bar linkage simulation and singularity exploration tools.
 
-This repository currently contains Python/Matplotlib tools for exploring a planar five-bar mechanism with a rigid L5 tool extension. The layout also reserves a `web/` folder for a future JavaScript/GitHub Pages version.
+This repository contains Python/Matplotlib tools and a static JavaScript browser simulator for exploring a planar five-bar mechanism with a rigid L5 tool extension.
 
 ## Current Tools
 
@@ -10,6 +10,7 @@ This repository currently contains Python/Matplotlib tools for exploring a plana
 - `fivebar-plot-singularities`: workspace and singularity plots for a fixed assembly branch.
 - `fivebar-search-config`: coarse search tool for candidate linkage dimensions.
 - `fivebar-search-torque-config`: random/refinement search for L1..L5 dimensions that cover the radius-1 upper semicircle while minimising worst single-joint holding torque.
+- `web/`: static browser simulator for GitHub Pages.
 
 ## Repository Layout
 
@@ -18,7 +19,7 @@ This repository currently contains Python/Matplotlib tools for exploring a plana
 ├── configs/default.toml      Example runtime config
 ├── src/fivebar/              Python package and Matplotlib tools
 │   └── config.py             Shared linkage/default configuration
-├── web/                      Placeholder for a future static JavaScript app
+├── web/                      Static JavaScript simulator for GitHub Pages
 ├── pyproject.toml            Python project metadata and command entry points
 ├── uv.lock                   Locked Python dependencies
 ├── README.md
@@ -85,4 +86,4 @@ If GitHub Pages is configured to serve the repository root, the root `index.html
 
 The simulator torque readout is quasi-static. It estimates the actuator holding torques for a point load at the L5 tip via the tip Jacobian. It does not include link masses, friction, inertia, gearbox effects, or actuator limits.
 
-The future browser implementation should keep the shared geometry concepts close to the Python version, but it can be built as a static client-side app suitable for GitHub Pages.
+The browser implementation is intentionally static and client-side so it can run from GitHub Pages without a build step or server.
