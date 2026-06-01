@@ -11,11 +11,11 @@ const config = {
     rightBranch: -1,
   },
   simulator: {
-    leftAngleDeg: 15.534233824250094,
-    rightAngleDeg: 43.922888743202634,
+    leftAngleDeg: 150.52174450934882,
+    rightAngleDeg: 139.80731128469222,
     distance: 0.5,
     targetAngleDeg: 90,
-    branch: -1,
+    branch: 1,
     massKg: 1,
     gravityX: -9.81,
     gravityY: 0,
@@ -579,6 +579,17 @@ function updateFromLoad() {
   render();
 }
 
+function initialiseFromTarget() {
+  state.mode = "target";
+  const solution = chooseIkSolution(pointFromPolar(state.targetDistance, state.targetAngleDeg));
+  if (!solution) return;
+  state.leftAngleDeg = solution.leftAngleDeg;
+  state.rightAngleDeg = solution.rightAngleDeg;
+  state.branch = solution.closureBranch;
+  state.ikLeftBranch = solution.leftBranch;
+  state.ikRightBranch = solution.rightBranch;
+}
+
 function setup() {
   const { linkage } = config;
   document.getElementById("configSummary").textContent =
@@ -592,6 +603,7 @@ function setup() {
   controls.gravityY.value = state.gravityY;
   controls.ikBranchPair.value = `${state.ikLeftBranch},${state.ikRightBranch}`;
   controls.preventBranchSwitching.checked = state.preventBranchSwitching;
+  initialiseFromTarget();
 
   controls.leftAngle.addEventListener("input", updateFromAngles);
   controls.rightAngle.addEventListener("input", updateFromAngles);

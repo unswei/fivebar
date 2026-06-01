@@ -47,11 +47,11 @@ DEFAULT_LINKAGE = LinkageConfig(
 )
 
 DEFAULT_SIMULATOR = SimulatorConfig(
-    left_angle_deg=15.534233824250094,
-    right_angle_deg=43.922888743202634,
+    left_angle_deg=150.52174450934882,
+    right_angle_deg=139.80731128469222,
     distance=0.5,
     target_angle_deg=90.0,
-    closure_branch=-1,
+    closure_branch=1,
     tip_mass_kg=1.0,
     gravity_x=-9.81,
     gravity_y=0.0,

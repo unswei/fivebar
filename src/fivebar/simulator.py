@@ -697,7 +697,12 @@ def main(argv=None):
         "(-1, +1)": (-1, 1),
         "(-1, -1)": (-1, -1),
     }
-    ik_branch_radio = RadioButtons(ik_branch_ax, ik_branch_labels, active=0)
+    default_ik_branch_label = branch_pair_label(DEFAULT_IK_LEFT_BRANCH, DEFAULT_IK_RIGHT_BRANCH)
+    ik_branch_radio = RadioButtons(
+        ik_branch_ax,
+        ik_branch_labels,
+        active=ik_branch_labels.index(default_ik_branch_label),
+    )
     ik_branch_ax.set_title("IK branch pair")
     prevent_switch_check = CheckButtons(
         prevent_switch_ax,
