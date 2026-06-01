@@ -10,7 +10,7 @@ This repository contains Python/Matplotlib tools and a static JavaScript browser
 - `fivebar-plot-singularities`: workspace and singularity plots for a fixed assembly branch.
 - `fivebar-search-config`: coarse search tool for candidate linkage dimensions.
 - `fivebar-search-torque-config`: random/refinement search for L1..L5 dimensions that cover the radius-1 upper semicircle while minimising worst single-joint holding torque.
-- `web/`: static browser simulator for GitHub Pages.
+- `web/`: static browser simulator and singularity plot for GitHub Pages.
 
 ## Repository Layout
 
@@ -19,7 +19,7 @@ This repository contains Python/Matplotlib tools and a static JavaScript browser
 ├── configs/default.toml      Example runtime config
 ├── src/fivebar/              Python package and Matplotlib tools
 │   └── config.py             Shared linkage/default configuration
-├── web/                      Static JavaScript simulator for GitHub Pages
+├── web/                      Static JavaScript simulator and singularity plot
 ├── pyproject.toml            Python project metadata and command entry points
 ├── uv.lock                   Locked Python dependencies
 ├── README.md
@@ -66,13 +66,15 @@ This is a sampled optimisation, not a formal proof. Increase `--samples`, `--rad
 
 ## Browser Simulator
 
-The static JavaScript simulator lives in `web/` and has no build step. It can run from GitHub Pages directly.
+The static JavaScript tools live in `web/` and have no build step. They can run from GitHub Pages directly.
 
 Live version:
 
 ```text
 https://unswei.github.io/fivebar/
 ```
+
+The simulator is at `/web/`, and the fixed-branch singularity plot is at `/web/singularity.html`.
 
 For local preview:
 

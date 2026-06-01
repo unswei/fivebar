@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Five-bar singularity plot</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="lab-header">
+      <a class="lab-brand" href="https://unswei.github.io/">
+        <img src="https://unswei.github.io/images/eicrl-logo-32x32.png" alt="" width="32" height="32" />
+        <span>
+          <strong>embodied intelligence and collective robotics</strong>
+          <small>research @ UNSW</small>
+        </span>
+      </a>
+      <nav class="lab-nav" aria-label="Five-bar tools">
+        <a href="./">Simulator</a>
+        <a class="active" href="./singularity.html">Singularity</a>
+        <a href="https://unswei.github.io/">Lab</a>
+        <a href="https://github.com/unswei/fivebar">GitHub</a>
+      </nav>
+    </header>
+
+    <main class="app-shell">
+      <section class="tool-heading">
+        <div>
+          <h1>Five-bar singularity plot</h1>
+          <p>Fixed-branch workspace sampling for the current L5 tool-tip configuration.</p>
+        </div>
+        <div class="config-summary" id="configSummary"></div>
+      </section>
+
+      <section class="singularity-layout">
+        <section class="singularity-plots">
+          <article class="singularity-card">
+            <h2>Reachability and serial curves</h2>
+            <canvas id="workspaceCanvas" width="720" height="720"></canvas>
+          </article>
+          <article class="singularity-card">
+            <h2>Condition number</h2>
+            <canvas id="conditionCanvas" width="720" height="720"></canvas>
+          </article>
+        </section>
+
+        <aside class="singularity-side" aria-label="Singularity controls and readout">
+          <section>
+            <h2>Fixed branch</h2>
+            <select id="branchPair">
+              <option value="-1,1">(-1, +1)</option>
+              <option value="1,-1">(+1, -1)</option>
+              <option value="1,1">(+1, +1)</option>
+              <option value="-1,-1">(-1, -1)</option>
+            </select>
+          </section>
+
+          <section>
+            <h2>Sample summary</h2>
+            <dl id="summary"></dl>
+          </section>
+
+          <section>
+            <h2>Legend</h2>
+            <div class="legend-stack">
+              <span class="legend-row"><span class="swatch" style="background:#d7e9f7"></span>Reachable tool point</span>
+              <span class="legend-row"><span class="swatch" style="background:#f2f4f7"></span>Unreachable sample</span>
+              <span class="legend-row"><span class="swatch" style="background:#111"></span>1 m target circle</span>
+              <span class="legend-row"><span class="swatch" style="background:#2ca02c"></span>Left serial curve</span>
+              <span class="legend-row"><span class="swatch" style="background:#1f77b4"></span>Right serial curve</span>
+            </div>
+          </section>
+
+          <p class="plot-note">
+            The plots keep one fixed assembly branch across all sampled points. They do not switch
+            branch point-by-point.
+          </p>
+        </aside>
+      </section>
+    </main>
+
+    <script type="module" src="./singularity.js"></script>
+  </body>
+</html>

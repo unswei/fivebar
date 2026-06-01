@@ -7,14 +7,30 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+    <header class="lab-header">
+      <a class="lab-brand" href="https://unswei.github.io/">
+        <img src="https://unswei.github.io/images/eicrl-logo-32x32.png" alt="" width="32" height="32" />
+        <span>
+          <strong>embodied intelligence and collective robotics</strong>
+          <small>research @ UNSW</small>
+        </span>
+      </a>
+      <nav class="lab-nav" aria-label="Five-bar tools">
+        <a class="active" href="./">Simulator</a>
+        <a href="./singularity.html">Singularity</a>
+        <a href="https://unswei.github.io/">Lab</a>
+        <a href="https://github.com/unswei/fivebar">GitHub</a>
+      </nav>
+      </header>
+
     <main class="app-shell">
-      <header class="app-header">
+      <section class="tool-heading">
         <div>
           <h1>Five-bar linkage simulator</h1>
           <p>Static browser model for linkage geometry, singularity margins, and tip-load torque.</p>
         </div>
         <div class="config-summary" id="configSummary"></div>
-      </header>
+      </section>
 
       <section class="workspace">
         <aside class="readout-panel" aria-label="Pose readout">
