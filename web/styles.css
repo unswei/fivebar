@@ -118,6 +118,211 @@ body {
   padding: 20px;
 }
 
+.landing-shell {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 26px 20px 48px;
+}
+
+.landing-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 32px;
+  align-items: center;
+  padding: 26px 0 30px;
+}
+
+.landing-copy {
+  display: grid;
+  gap: 16px;
+}
+
+.eyebrow {
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 720;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.landing-hero h1 {
+  max-width: 760px;
+  font-size: clamp(34px, 5vw, 58px);
+  line-height: 1.02;
+}
+
+.landing-lede {
+  max-width: 760px;
+  color: #3e4854;
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.landing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.primary-action,
+.secondary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  border-radius: 6px;
+  padding: 9px 13px;
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.primary-action {
+  color: white;
+  background: #2f343b;
+}
+
+.secondary-action {
+  color: var(--text);
+  border: 1px solid var(--border);
+  background: white;
+}
+
+.mechanism-figure {
+  margin: 0;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  box-shadow: var(--shadow);
+}
+
+.mechanism-figure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.mechanism-figure figcaption {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.mechanism-figure .target-arc {
+  fill: none;
+  stroke: #111;
+  stroke-width: 1.2;
+  stroke-dasharray: 5 4;
+}
+
+.mechanism-figure .axis-line {
+  stroke: #222;
+  stroke-width: 1.1;
+  stroke-dasharray: 5 4;
+}
+
+.mechanism-figure .left-link,
+.mechanism-figure .right-link,
+.mechanism-figure .tool-link {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mechanism-figure .left-link {
+  stroke: var(--blue);
+  stroke-width: 5;
+}
+
+.mechanism-figure .right-link {
+  stroke: var(--orange);
+  stroke-width: 5;
+}
+
+.mechanism-figure .tool-link {
+  stroke: #2f343b;
+  stroke-width: 4;
+}
+
+.mechanism-figure circle {
+  fill: #20242a;
+}
+
+.mechanism-figure .node-blue {
+  fill: var(--blue);
+}
+
+.mechanism-figure .node-orange {
+  fill: var(--orange);
+}
+
+.mechanism-figure .node-wrist {
+  fill: #2f343b;
+}
+
+.mechanism-figure .node-tip {
+  fill: var(--red);
+}
+
+.landing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0;
+}
+
+.landing-grid article {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  box-shadow: var(--shadow);
+}
+
+.landing-grid h2,
+.config-band h2 {
+  margin-bottom: 9px;
+}
+
+.landing-grid p,
+.config-band p {
+  color: #3e4854;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.config-band {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+  gap: 20px;
+  align-items: start;
+  margin: 22px 0;
+  padding: 20px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: #eef2f7;
+}
+
+.config-band pre {
+  margin: 0;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+  background: white;
+  color: #1c2733;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .tool-heading {
   display: flex;
   align-items: flex-end;
@@ -459,6 +664,10 @@ select {
     margin-top: 10px;
   }
 
+  .lab-title {
+    white-space: normal;
+  }
+
   .config-summary {
     text-align: left;
     white-space: normal;
@@ -466,8 +675,29 @@ select {
 
   .workspace,
   .singularity-layout,
-  .singularity-plots {
+  .singularity-plots,
+  .landing-hero,
+  .landing-grid,
+  .config-band,
+  .compact {
     grid-template-columns: 1fr;
+  }
+
+  .landing-shell {
+    padding: 18px 12px 34px;
+  }
+
+  .landing-hero {
+    gap: 18px;
+    padding-top: 14px;
+  }
+
+  .landing-lede {
+    font-size: 16px;
+  }
+
+  .mechanism-figure {
+    padding: 12px;
   }
 
   .plot-panel {

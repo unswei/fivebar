@@ -2,11 +2,172 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="refresh" content="0; url=./web/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Five-bar linkage simulator</title>
+    <meta
+      name="description"
+      content="Interactive five-bar linkage simulator, singularity visualisation, and configuration search tools for planar parallel robotics."
+    />
+    <meta
+      name="keywords"
+      content="five-bar linkage, fivebar linkage, planar parallel robot, parallel mechanism, linkage kinematics, singularity analysis, condition number, static torque, mechanism design, robotics simulator"
+    />
+    <meta property="og:title" content="Five-bar linkage design tools" />
+    <meta
+      property="og:description"
+      content="Research tools for five-bar linkage geometry, reachability, singularities, and idealised holding torque."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://unswei.github.io/fivebar/" />
+    <link rel="canonical" href="https://unswei.github.io/fivebar/" />
+    <link rel="stylesheet" href="./web/styles.css" />
+    <title>Five-bar linkage design tools</title>
   </head>
   <body>
-    <p><a href="./web/">Open the five-bar linkage simulator</a></p>
+    <header class="lab-header">
+      <a class="lab-brand" href="https://unswei.github.io/" title="embodied intelligence and collective robotics">
+        <img src="https://unswei.github.io/images/eicrl-logo-32x32.png" alt="" width="32" height="32" />
+        <span class="lab-brand-copy">
+          <strong class="lab-title">embodied intelligence and collective robotics</strong>
+          <small class="lab-subtitle">research @ UNSW</small>
+        </span>
+      </a>
+      <nav class="lab-nav" aria-label="Five-bar tools">
+        <a href="https://unswei.github.io/">Lab</a>
+        <a href="https://unswei.github.io/projects/">Projects</a>
+        <a class="active" href="./">Project</a>
+        <a href="./web/">Simulator</a>
+        <a href="./web/singularity.html">Singularity</a>
+        <a class="lab-nav-icon" href="https://github.com/unswei/fivebar" aria-label="Five-bar GitHub repository" title="GitHub repository">
+          <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">
+            <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.1 3.29 9.41 7.86 10.94.58.11.79-.25.79-.56v-2.16c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.16 1.18A10.9 10.9 0 0 1 12 5.56c.98 0 1.95.13 2.86.38 2.19-1.49 3.15-1.18 3.15-1.18.63 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.08 0 4.42-2.69 5.39-5.25 5.68.41.35.78 1.05.78 2.12v3.14c0 .31.21.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z" />
+          </svg>
+        </a>
+      </nav>
+    </header>
+
+    <main class="landing-shell">
+      <section class="landing-hero">
+        <div class="landing-copy">
+          <p class="eyebrow">Planar parallel robotics</p>
+          <h1>Five-bar linkage design tools</h1>
+          <p class="landing-lede">
+            Interactive tools for exploring five-bar linkage geometry, reachability,
+            singularities, and idealised holding torque for a planar parallel mechanism
+            with a rigid L5 tool extension.
+          </p>
+          <div class="landing-actions">
+            <a class="primary-action" href="./web/">Open simulator</a>
+            <a class="secondary-action" href="./web/singularity.html">View singularity plot</a>
+            <a class="secondary-action" href="https://github.com/unswei/fivebar">GitHub</a>
+          </div>
+        </div>
+        <figure class="mechanism-figure" aria-label="Five-bar linkage schematic">
+          <svg viewBox="-120 -95 240 180" role="img">
+            <title>Five-bar linkage schematic</title>
+            <path class="target-arc" d="M -95 45 A 95 95 0 0 1 95 45" />
+            <path class="axis-line" d="M -110 45 L 110 45" />
+            <path class="left-link" d="M -18 42 L -60 -18 L 0 -48 L 52 -8" />
+            <path class="right-link" d="M 18 42 L 62 8 L 0 -48" />
+            <path class="tool-link" d="M -60 -18 L -84 -56" />
+            <circle cx="-18" cy="42" r="4" />
+            <circle cx="18" cy="42" r="4" />
+            <circle class="node-blue" cx="-60" cy="-18" r="5" />
+            <circle class="node-orange" cx="62" cy="8" r="5" />
+            <circle class="node-wrist" cx="0" cy="-48" r="4" />
+            <circle class="node-tip" cx="-84" cy="-56" r="6" />
+          </svg>
+          <figcaption>Closed-chain wrist with a rigid L5 tool extension.</figcaption>
+        </figure>
+      </section>
+
+      <section class="landing-grid">
+        <article>
+          <h2>What the mechanism is</h2>
+          <p>
+            The model is a two-actuator planar five-bar linkage. Two base joints drive
+            proximal links, passive elbows close the loop at a wrist point, and L5 extends
+            one distal link to form the tool tip.
+          </p>
+        </article>
+        <article>
+          <h2>What the simulator shows</h2>
+          <p>
+            The simulator shows joint control, polar target inverse kinematics, fixed IK
+            branch pairs, branch-switch prevention, trajectory traces, singularity margins,
+            and quasi-static holding torque for a tip load.
+          </p>
+        </article>
+        <article>
+          <h2>Condition number</h2>
+          <p>
+            The condition number is the ratio of the largest to smallest singular value of
+            the linkage Jacobian. Values near 1 are well conditioned; high values indicate
+            weak or poorly controlled motion directions.
+          </p>
+        </article>
+        <article>
+          <h2>Serial singularity</h2>
+          <p>
+            A serial singularity occurs when one side chain is folded or stretched so that
+            its actuator loses useful leverage over the wrist or tool point.
+          </p>
+        </article>
+        <article>
+          <h2>Parallel singularity</h2>
+          <p>
+            A parallel singularity occurs when the closed-chain constraints become locally
+            dependent. Near this state, the mechanism can lose stiffness or gain an
+            uncontrolled direction.
+          </p>
+        </article>
+        <article>
+          <h2>Limitations</h2>
+          <p>
+            These are ideal kinematic and quasi-static tools. They do not model link mass,
+            friction, backlash, compliance, cable stretch, dynamics, actuator limits, or
+            controller behaviour.
+          </p>
+        </article>
+      </section>
+
+      <section class="config-band">
+        <div>
+          <h2>Current best practical config</h2>
+          <p>
+            The current default short-link configuration uses the fixed
+            <code>(+1, -1)</code> branch and reaches the sampled 1 m upper semicircle with
+            max condition around <code>6.61</code>.
+          </p>
+        </div>
+        <pre><code>[linkage]
+d = 0.1917
+base_y = -0.3745
+l1 = 0.5829
+l2 = 0.4632
+l3 = 0.3308
+l4 = 0.7360
+l5 = 0.3790
+left_branch = 1
+right_branch = -1</code></pre>
+      </section>
+
+      <section class="landing-grid compact">
+        <article>
+          <h2>Citation</h2>
+          <p>
+            This is an exploratory research tool. If it supports your work, cite the
+            repository URL and the commit hash used for your results.
+          </p>
+        </article>
+        <article>
+          <h2>Contact</h2>
+          <p>
+            Maintained through the
+            <a href="https://unswei.github.io/">embodied intelligence and collective robotics</a>
+            lab at UNSW.
+          </p>
+        </article>
+      </section>
+    </main>
   </body>
 </html>
