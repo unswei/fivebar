@@ -12,6 +12,7 @@ dependencies = [
 
 [project.scripts]
 fivebar-simulator = "fivebar.simulator:main"
+fivebar-spatial-simulator = "fivebar.spatial_simulator:main"
 fivebar-plot-singularities = "fivebar.singularity_plotter:main"
 fivebar-plot-spatial-reachability = "fivebar.spatial_reachability:main"
 fivebar-search-config = "fivebar.search_config:main"
