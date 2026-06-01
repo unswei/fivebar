@@ -1,0 +1,119 @@
+# Fivebar
+
+> Five-bar linkage simulator, singularity visualisation, and configuration search tools for planar parallel robotics and mechanism design.
+
+This repository explores a planar five-bar linkage with a rigid L5 tool extension. It is intended for research and early mechanism design, especially reachability, fixed-branch singularity analysis, condition number visualisation, and idealised quasi-static holding torque estimates.
+
+## Primary Links
+
+- Live project page: https://unswei.github.io/fivebar/
+- Web simulator: https://unswei.github.io/fivebar/web/
+- Singularity plot: https://unswei.github.io/fivebar/web/singularity.html
+- Source repository: https://github.com/unswei/fivebar
+- Lab website: https://unswei.github.io/
+- Project page: https://unswei.github.io/projects/fivebar/
+
+## Key Concepts
+
+- Mechanism: two actuated base joints, two passive elbow joints, a closed-chain wrist, and a rigid L5 tool extension.
+- Tool tip: the endpoint of L5; it is not the same point as the five-bar loop closure wrist.
+- IK branch pair: the left and right open-chain elbow choices, written for example as (+1, -1).
+- Closure branch: the wrist intersection choice after the two elbows are known. It is a separate binary assembly choice from the IK branch pair.
+- Condition number: the ratio between the largest and smallest singular values of the linkage Jacobian. Values near 1 are well conditioned; high values indicate proximity to a weak or singular direction.
+- Serial singularity: one side chain is folded or stretched so its base actuator loses useful leverage.
+- Parallel singularity: the closed-chain constraints become locally dependent, reducing stiffness or creating an uncontrolled motion direction.
+
+## Current Default Configuration
+
+```toml
+[linkage]
+d = 0.1917
+base_y = -0.3745
+l1 = 0.5829
+l2 = 0.4632
+l3 = 0.3308
+l4 = 0.7360
+l5 = 0.3790
+left_branch = 1
+right_branch = -1
+
+[simulator]
+left_angle_deg = 15.534233824250094
+right_angle_deg = 43.922888743202634
+distance = 0.5
+target_angle_deg = 90.0
+closure_branch = -1
+tip_mass_kg = 1.0
+gravity_x = -9.81
+gravity_y = 0.0
+```
+
+## Important Source Files
+
+- README.md: human-readable overview, setup instructions, definitions, limitations, and citation guidance.
+- index.html: static landing page for GitHub Pages.
+- web/index.html: browser simulator UI.
+- web/app.js: static JavaScript simulator logic.
+- web/singularity.html: browser singularity visualisation UI.
+- web/singularity.js: static JavaScript singularity sampler and plotter.
+- web/styles.css: shared web styling.
+- configs/default.toml: example runtime configuration shared by the Python tools.
+- src/fivebar/config.py: Python configuration dataclasses and TOML loading.
+- src/fivebar/simulator.py: interactive 2D Matplotlib simulator.
+- src/fivebar/singularity_plotter.py: fixed-branch singularity plotter.
+- src/fivebar/spatial_simulator.py: interactive 3D swept-linkage simulator.
+- src/fivebar/spatial_reachability.py: 3D half-sphere reachability sampler.
+- src/fivebar/search_config.py: coarse linkage configuration search.
+- src/fivebar/search_torque_config.py: sampled torque-minimising configuration search.
+
+## Running The Project
+
+Install Python dependencies:
+
+```bash
+uv sync
+```
+
+Run common Python tools:
+
+```bash
+uv run fivebar-simulator --config configs/default.toml
+uv run fivebar-plot-singularities --config configs/default.toml
+uv run fivebar-spatial-simulator --config configs/default.toml
+uv run fivebar-search-torque-config
+```
+
+Run the static web tools locally:
+
+```bash
+python3 -m http.server 4173
+```
+
+Then open:
+
+- http://127.0.0.1:4173/
+- http://127.0.0.1:4173/web/
+- http://127.0.0.1:4173/web/singularity.html
+
+## Limitations
+
+- The models are ideal kinematic and quasi-static tools.
+- Link masses, actuator masses, friction, bearing losses, backlash, compliance, cable stretch, and gearbox effects are not included.
+- Torque estimates use a point load at the L5 tip via the tip Jacobian.
+- Dynamics, vibration, impacts, controller limits, and actuator saturation are not modelled.
+- Singularity and reachability claims are based on sampled grids unless explicitly stated otherwise.
+- The 3D tools currently model a planar linkage swept around a base x-axis; they are not a full 6-DOF arm model.
+
+## Citation And Contact
+
+If this project supports your work, cite the repository URL and the commit hash used for your results.
+
+Suggested citation:
+
+```text
+Obst, O. Fivebar: five-bar linkage simulation and singularity exploration tools.
+GitHub repository, https://github.com/unswei/fivebar
+```
+
+Contact: embodied intelligence and collective robotics, UNSW, https://unswei.github.io/
+
