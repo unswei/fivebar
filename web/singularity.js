@@ -266,6 +266,10 @@ function colourForCondition(condition) {
   return `hsl(${hue}, 72%, ${light}%)`;
 }
 
+function insideUpperSemicircle(point, radius) {
+  return point[1] >= 0 && point[0] * point[0] + point[1] * point[1] <= radius * radius;
+}
+
 function render() {
   const [leftBranch, rightBranch] = branchSelect.value.split(",").map(Number);
   const workspace = prepareCanvas(workspaceCanvas);
@@ -279,14 +283,19 @@ function render() {
   let minParallel = Infinity;
   let minSerial = Infinity;
   let maxCondition = 0;
+  let semicircleSamples = 0;
+  let semicircleReachable = 0;
+  let semicircleMaxCondition = 0;
 
   for (let iy = 0; iy < view.ny; iy += 1) {
     for (let ix = 0; ix < view.nx; ix += 1) {
       const x = view.xmin + ((ix + 0.5) / view.nx) * (view.xmax - view.xmin);
       const y = view.ymin + ((iy + 0.5) / view.ny) * (view.ymax - view.ymin);
+      const inSemicircle = insideUpperSemicircle([x, y], config.targetRadius);
       const metrics = fivebarToolMetrics([x, y], leftBranch, rightBranch);
       const px = ix * cellW;
       const py = condition.height - (iy + 1) * cellH;
+      if (inSemicircle) semicircleSamples += 1;
 
       if (!metrics) {
         workspace.ctx.fillStyle = "rgba(242, 244, 247, 0.78)";
@@ -296,6 +305,10 @@ function render() {
         minParallel = Math.min(minParallel, metrics.parallelSin);
         minSerial = Math.min(minSerial, metrics.serialMin);
         maxCondition = Math.max(maxCondition, metrics.condition);
+        if (inSemicircle) {
+          semicircleReachable += 1;
+          semicircleMaxCondition = Math.max(semicircleMaxCondition, metrics.condition);
+        }
         workspace.ctx.fillStyle = "rgba(31, 119, 180, 0.18)";
         condition.ctx.fillStyle = colourForCondition(metrics.condition);
       }
@@ -321,6 +334,14 @@ function render() {
   const total = view.nx * view.ny;
   summary.innerHTML = [
     metric("Reachable samples", `${reachable} / ${total} (${format((100 * reachable) / total, 1)}%)`),
+    metric(
+      `${format(config.targetRadius)} m upper semicircle reachable`,
+      `${semicircleReachable} / ${semicircleSamples} (${format((100 * semicircleReachable) / semicircleSamples, 1)}%)`,
+    ),
+    metric(
+      `${format(config.targetRadius)} m upper semicircle max condition`,
+      semicircleReachable ? format(semicircleMaxCondition, 2) : "n/a",
+    ),
     metric("Min parallel sin", reachable ? format(minParallel, 4) : "n/a"),
     metric("Min serial margin", reachable ? `${format(minSerial, 4)} m²` : "n/a"),
     metric("Max condition", reachable ? format(maxCondition, 2) : "n/a"),

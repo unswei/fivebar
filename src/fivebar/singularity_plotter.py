@@ -249,6 +249,7 @@ def sample_workspace(
 
     reachable = np.zeros_like(X, dtype=bool)
     log_cond = np.full_like(X, np.nan, dtype=float)
+    condition_number = np.full_like(X, np.nan, dtype=float)
     parallel_badness = np.full_like(X, np.nan, dtype=float)
 
     for i in range(ny):
@@ -272,6 +273,7 @@ def sample_workspace(
             reachable[i, j] = True
 
             cond = result["cond"]
+            condition_number[i, j] = cond
             if np.isfinite(cond):
                 log_cond[i, j] = np.log10(cond)
             else:
@@ -281,7 +283,23 @@ def sample_workspace(
             # Badness increases as we approach it.
             parallel_badness[i, j] = -np.log10(result["parallel_sin"] + 1e-6)
 
-    return X, Y, reachable, log_cond, parallel_badness
+    return X, Y, reachable, log_cond, condition_number, parallel_badness
+
+
+def summarise_upper_semicircle(X, Y, reachable, condition_number, radius=1.0):
+    """Return reachability and max condition for the upper half-disc."""
+    in_semicircle = (Y >= 0.0) & (X * X + Y * Y <= radius * radius)
+    sample_count = int(np.count_nonzero(in_semicircle))
+    reachable_count = int(np.count_nonzero(in_semicircle & reachable))
+    fraction = reachable_count / sample_count if sample_count else np.nan
+
+    reachable_conditions = condition_number[in_semicircle & reachable]
+    if reachable_conditions.size:
+        max_condition = float(np.nanmax(reachable_conditions))
+    else:
+        max_condition = np.nan
+
+    return sample_count, reachable_count, fraction, max_condition
 
 
 def draw_circle(ax, centre, radius, **kwargs):
@@ -371,6 +389,9 @@ def plot_fivebar_singularities(
     radio_ax = fig.add_axes([0.85, 0.52, 0.12, 0.24])
     radio = RadioButtons(radio_ax, labels, active=active_index)
     radio_ax.set_title("fixed branch")
+    summary_ax = fig.add_axes([0.85, 0.23, 0.13, 0.20])
+    summary_ax.set_axis_off()
+    summary_text = summary_ax.text(0.0, 1.0, "", va="top", ha="left", fontsize=9)
     colourbar = [None]
 
     def draw_target_overlays():
@@ -402,7 +423,7 @@ def plot_fivebar_singularities(
         for axis in axes:
             axis.clear()
 
-        X, Y, reachable, log_cond, parallel_badness = sample_workspace(
+        X, Y, reachable, log_cond, condition_number, parallel_badness = sample_workspace(
             d=d,
             l1=l1,
             l2=l2,
@@ -412,6 +433,19 @@ def plot_fivebar_singularities(
             left_branch=current_left_branch,
             right_branch=current_right_branch,
             base_y=base_y,
+        )
+        summary_radius = 1.0 if target_radius is None else target_radius
+        (
+            semicircle_samples,
+            semicircle_reachable,
+            semicircle_fraction,
+            semicircle_max_condition,
+        ) = summarise_upper_semicircle(
+            X,
+            Y,
+            reachable,
+            condition_number,
+            radius=summary_radius,
         )
 
         ax = axes[0]
@@ -497,6 +531,16 @@ def plot_fivebar_singularities(
         fig.suptitle(
             f"Fixed assembly condition {branch_label}; "
             f"d={d}, l1={l1}, l2={l2}, l3={l3}, l4={l4}, l5={l5}, base_y={base_y}"
+        )
+        if np.isfinite(semicircle_max_condition):
+            max_condition_text = f"{semicircle_max_condition:.2f}"
+        else:
+            max_condition_text = "n/a"
+        summary_text.set_text(
+            f"{summary_radius:g} m upper semicircle\n"
+            f"reachable: {semicircle_reachable} / {semicircle_samples} "
+            f"({100.0 * semicircle_fraction:.1f}%)\n"
+            f"max condition: {max_condition_text}"
         )
         fig.canvas.draw_idle()
 
