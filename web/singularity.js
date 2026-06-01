@@ -1,13 +1,13 @@
 const config = {
-  d: 0.173,
-  baseY: -0.486,
-  l1: 0.556,
-  l2: 0.544,
-  l3: 0.544,
-  l4: 0.557,
-  l5: 0.406,
-  leftBranch: -1,
-  rightBranch: 1,
+  d: 0.1917,
+  baseY: -0.3745,
+  l1: 0.5829,
+  l2: 0.4632,
+  l3: 0.3308,
+  l4: 0.736,
+  l5: 0.379,
+  leftBranch: 1,
+  rightBranch: -1,
   targetRadius: 1.0,
 };
 

@@ -35,15 +35,15 @@ class SingularityPlotConfig:
 
 
 DEFAULT_LINKAGE = LinkageConfig(
-    d=0.173,
-    base_y=-0.486,
-    l1=0.556,
-    l2=0.544,
-    l3=0.544,
-    l4=0.557,
-    l5=0.406,
-    left_branch=-1,
-    right_branch=1,
+    d=0.1917,
+    base_y=-0.3745,
+    l1=0.5829,
+    l2=0.4632,
+    l3=0.3308,
+    l4=0.7360,
+    l5=0.3790,
+    left_branch=1,
+    right_branch=-1,
 )
 
 DEFAULT_SIMULATOR = SimulatorConfig(
